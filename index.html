@@ -82,6 +82,7 @@
     <script type="module">
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js';
       import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js';
+      import { getFirestore, collection, getDoc, doc } from 'https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js'
 
       // Your web app's Firebase configuration
       const firebaseConfig = {
@@ -95,24 +96,37 @@
 
       // Initialize Firebase
       const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
 
-      document.getElementById('login-form').addEventListener('submit', (event) => {
+      document.getElementById('login-form').addEventListener('submit', async (event) => {
         event.preventDefault();
-        document.getElementById('login').textContent = "Login Success";
-        const auth = getAuth();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        signInWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
-              // Signed in
-              const user = userCredential.user;
-              // Redirect or show success message
-              document.getElementById('login').textContent = "Login Success";
-              console.log(user);
-          }).catch((error) => {
-            document.getElementById('login').textContent = "Login Gagal";
-            console.log(error.message);
-          });
+        try {
+          const email = document.getElementById('email').value;
+          const password = document.getElementById('password').value;
+          
+          // try to login
+          let userCredential;
+          try {
+            const auth = getAuth();
+            userCredential = await signInWithEmailAndPassword(auth, email, password);
+          } catch (error) {
+            throw Error('Gagal login: Email atau Password salah!');
+          }
+
+          // get user specific url
+          try {
+            const userLink = await getDoc(doc(db, 'users', email));
+            if (userLink.exists()) {
+              window.location.href = userLink.data().url;
+            } else {
+              throw Error();
+            }
+          } catch (error) {
+            throw Error('Data user tidak ditemukan!');
+          }
+        } catch (error) {
+          alert(error.message);
+        }
       });
     </script>
   </body>
