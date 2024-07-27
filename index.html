@@ -108,8 +108,10 @@
               const user = userCredential.user;
               // Redirect or show success message
               document.getElementById('login').textContent = "Login Success";
+              console.log(user);
           }).catch((error) => {
             document.getElementById('login').textContent = "Login Gagal";
+            console.log(error.message);
           });
       });
     </script>
